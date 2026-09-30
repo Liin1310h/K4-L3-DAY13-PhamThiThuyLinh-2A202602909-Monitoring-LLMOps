@@ -5,9 +5,9 @@
 - Họ và tên: **Phạm Thị Thùy Linh**
 - MSSV: **2A202602909**
 - Lớp: `K4-L3B`
-- Repository URL: **[BỔ SUNG URL REPOSITORY]**
-- Commit SHA cuối: **[BỔ SUNG SAU KHI COMMIT]**
-- Project Langfuse: `day13-k4-l3b-<MSSV>`
+- Repository URL: **https://github.com/Liin1310h/K4-L3-DAY13-PhamThiThuyLinh-2A202602909-Monitoring-LLMOps**
+- Commit SHA cuối: **3008ccdafe5aceabdda59b9001f3ee21f7375f85**
+- Project Langfuse: `day13-k4-l3b-2A202602909`
 - Challenge ID: `day13-k4-l3b-monitoring-llmops-v1`
 
 ## 2. Evidence index
@@ -52,8 +52,8 @@ Mỗi request có root observation `day13-agent-request`/`lab-agent-run`, cùng 
 
 Prompt dùng name `day13-chat`, label `production` và version lấy từ Langfuse. Prompt v1 là baseline; prompt v2 cải thiện grounding và fallback. Trace ID cần bổ sung sau khi chụp:
 
-- Trace dùng prompt v1: **[BỔ SUNG TRACE ID V1]**
-- Trace dùng prompt v2: **[BỔ SUNG TRACE ID V2]**
+- Trace dùng prompt v1: **fe02b1107ff3aae814ce572b4881a0f8**
+- Trace dùng prompt v2: **244d8531f29b05e5a0a491c8f27d5d92**
 
 Dashboard dùng `data/logs.jsonl` và gồm 6 panel: latency, traffic, errors, cost, tokens và quality. Panel latency theo dõi P50/P95/P99 và TTFT; panel errors theo dõi error rate và retrieval success. Contract đạt `6/6 panel`.
 
@@ -81,10 +81,10 @@ Một số test dùng `tmp_path` bị Windows từ chối quyền truy cập th�
 
 ## 8. Checklist trước khi nộp
 
-- [ ] Bổ sung họ tên, MSSV, URL repository và commit SHA.
-- [ ] Bổ sung `01-pytest.png` và `05-pii-redaction.png`.
-- [ ] Bổ sung evidence Langfuse `06`–`10` và trace ID v1/v2.
-- [ ] Bổ sung ảnh dashboard runtime `11`.
-- [ ] Bổ sung incident images `12`, `13`, `14`.
-- [ ] Chạy lại tests và validators trên commit cuối.
-- [ ] Không commit `.env`, secret, PII thô, log JSONL hoặc `config/challenge.json`.
+- [x] Bổ sung họ tên, MSSV, URL repository và commit SHA.
+- [x] Bổ sung `01-pytest.png` và `05-pii-redaction.png`.
+- [x] Bổ sung evidence Langfuse `06`–`10` và trace ID v1/v2.
+- [x] Bổ sung ảnh dashboard runtime `11`.
+- [x] Bổ sung incident images `12`, `13`, `14`.
+- [x] Chạy lại tests và validators trên commit cuối.
+- [x] Không commit `.env`, secret, PII thô, log JSONL hoặc `config/challenge.json`.
