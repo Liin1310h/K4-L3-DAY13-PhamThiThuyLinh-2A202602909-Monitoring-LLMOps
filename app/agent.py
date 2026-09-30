@@ -51,7 +51,24 @@ class LabAgent:
             },
         ):
             started = time.perf_counter()
-            docs = retrieve(message)
+            if hasattr(langfuse_client, "start_as_current_observation"):
+                retrieval_observation = langfuse_client.start_as_current_observation(
+                    name="retrieval",
+                    as_type="retriever",
+                    input={"query_preview": summarize_text(message)},
+                    metadata={"correlation_id": correlation_id},
+                )
+            else:
+                retrieval_observation = None
+            if retrieval_observation is not None:
+                with retrieval_observation as retrieval_span:
+                    docs = retrieve(message)
+                    retrieval_span.update(
+                        output={"doc_count": len(docs)},
+                        metadata={"success": bool(docs)},
+                    )
+            else:
+                docs = retrieve(message)
             prompt = resolve_prompt(
                 langfuse_client,
                 feature=feature,
@@ -59,22 +76,52 @@ class LabAgent:
                 message=message,
                 enabled=tracing_enabled(),
             )
-            langfuse_client.update_current_span(
-                metadata={
-                    "doc_count": len(docs),
-                    "query_preview": summarize_text(message),
-                    "prompt_name": prompt.name,
-                    "prompt_label": prompt.label,
-                    "prompt_version": prompt.version,
-                    "prompt_source": prompt.source,
-                    "prompt_fetch_error": prompt.fetch_error or "",
-                },
-                version=prompt.version,
-            )
-            # TODO (CP2): instrument retrieve() and FakeLLM.generate() as child
-            # observations. The nested generation must receive prompt, usage and cost.
+            if tracing_enabled():
+                langfuse_client.update_current_span(
+                    metadata={
+                        "doc_count": len(docs),
+                        "query_preview": summarize_text(message),
+                        "prompt_name": prompt.name,
+                        "prompt_label": prompt.label,
+                        "prompt_version": prompt.version,
+                        "prompt_source": prompt.source,
+                        "prompt_fetch_error": prompt.fetch_error or "",
+                    },
+                    version=prompt.version,
+                )
             with propagate_attributes(prompt=prompt.managed_prompt):
-                response = self.llm.generate(prompt.text)
+                if hasattr(langfuse_client, "start_as_current_observation"):
+                    generation_observation = langfuse_client.start_as_current_observation(
+                        name="llm-generation",
+                        as_type="generation",
+                        model=self.model,
+                        input={"prompt_preview": summarize_text(prompt.text)},
+                        metadata={
+                            "correlation_id": correlation_id,
+                            "prompt_name": prompt.name,
+                            "prompt_label": prompt.label,
+                            "prompt_version": prompt.version,
+                        },
+                        prompt=prompt.managed_prompt,
+                    )
+                else:
+                    generation_observation = None
+                if generation_observation is not None:
+                    with generation_observation as generation_span:
+                        response = self.llm.generate(prompt.text)
+                        generation_span.update(
+                            output={"answer_preview": summarize_text(response.text)},
+                            usage_details={
+                                "input_tokens": response.usage.input_tokens,
+                                "output_tokens": response.usage.output_tokens,
+                            },
+                            cost_details={
+                                "input": response.usage.input_tokens / 1_000_000 * 3,
+                                "output": response.usage.output_tokens / 1_000_000 * 15,
+                            },
+                        )
+                else:
+                    response = self.llm.generate(prompt.text)
             quality_score = self._heuristic_quality(message, response.text, docs)
             latency_ms = int((time.perf_counter() - started) * 1000)
             cost_usd = self._estimate_cost(response.usage.input_tokens, response.usage.output_tokens)

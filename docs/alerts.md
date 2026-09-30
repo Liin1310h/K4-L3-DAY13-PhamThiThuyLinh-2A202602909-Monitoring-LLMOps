@@ -33,6 +33,31 @@ Ví dụ dưới đây minh họa mức độ cụ thể cần có. Học viên 
 - Mitigation tạm thời:
 - Owner:
 
+## CP2 completed runbooks
+
+The active alert contract is defined in `config/alert_rules.yaml`:
+
+### Alert 1: HighLatencyP95
+
+- Severity: warning; duration: 5m; Slack: `#k4-l3b-alerts`.
+- Condition: `p95(response_sent.latency_ms) > 3000`.
+- Check the latency panel, filter `data/logs.jsonl` by high `latency_ms`, then open the trace with the same `correlation_id`.
+- Mitigate by rolling back the prompt if generation is slow, disabling a practice incident, or reducing load.
+
+### Alert 2: HighErrorRate
+
+- Severity: critical; duration: 5m; Slack: `#k4-l3b-alerts`.
+- Condition: `error_rate(request_failed) > 2%`.
+- Break down `request_failed` by `error_type`, select a `correlation_id`, and inspect its trace.
+- Mitigate by disabling the incident, switching to the known-good prompt version, or restoring the failed dependency.
+
+### Alert 3: LowRetrievalSuccess
+
+- Severity: warning; duration: 10m; Slack: `#k4-l3b-alerts`.
+- Condition: `retrieval_success_rate < 90%`.
+- Check `tool_success` in the errors panel, inspect failed retrieval log lines, and compare retriever spans.
+- Mitigate by restoring the retrieval dependency/index and rerunning the workload to confirm recovery.
+
 ## Alert 2
 
 - Tên:
